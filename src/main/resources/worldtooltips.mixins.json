@@ -1,11 +1,12 @@
 {
   "required": true,
-  "package": "net.fabricmc.example.mixin",
+  "package": "tfar.worldtooltips.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
   ],
   "client": [
-    "ExampleMixin"
+    "ItemEntityRendererMixin",
+    "TextRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

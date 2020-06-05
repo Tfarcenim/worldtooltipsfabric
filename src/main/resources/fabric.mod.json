@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "worldtooltips",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "World Tooltips",
+  "description": "Adds tooltips to inworld items",
   "authors": [
     "Tfarecnim"
   ],
@@ -18,11 +18,13 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "tfar.example.ExampleMod"
+    ],
+    "client": [
+      "tfar.worldtooltips.WorldTooltips"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "worldtooltips.mixins.json"
   ],
 
   "depends": {
