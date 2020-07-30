@@ -7,10 +7,10 @@ import tfar.worldtooltips.Hooks;
 
 @Mixin(TextRenderer.class)
 public class TextRendererMixin {
-	@ModifyConstant(method = "drawInternal", constant = @Constant(),
-					slice = @Slice(to = @At(value = "INVOKE",
-									target = "Lnet/minecraft/client/util/math/Matrix4f;copy()Lnet/minecraft/client/util/math/Matrix4f;")))
-	public int alpha(int old) {
-		return Hooks.getColor(old);
-	}
+	//@ModifyConstant(method = "drawInternal", constant = @Constant(),
+	//				slice = @Slice(to = @At(value = "INVOKE",
+	//								target = "Lnet/minecraft/client/util/math/Matrix4f;copy()Lnet/minecraft/client/util/math/Matrix4f;")))
+	//public int alpha(int old) {
+		//return Hooks.getColor(old);
+	//}
 }

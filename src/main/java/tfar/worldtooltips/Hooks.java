@@ -5,7 +5,6 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.entity.ItemEntity;
@@ -13,6 +12,7 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Matrix4f;
 
 import java.util.Collections;
 import java.util.List;
@@ -24,49 +24,47 @@ public class Hooks {
 
 	public static boolean transparent = false;
 
-	public static final Identifier id = new Identifier(WorldTooltips.MODID,"default");
-
-    static {
-		}
-
 	public static void renderItemEntityHook(ItemEntity entity, float p_225623_2_, MatrixStack matrices, VertexConsumerProvider buffer, int light) {
 		double dist = mc.getEntityRenderManager().getSquaredDistanceToCamera(entity);
 		if (isVisible(dist)) {
-			float f = entity.getHeight() + 0.5F;
 			List<Text> tooltip = entity.getStack().getTooltip(MinecraftClient.getInstance().player, MinecraftClient.getInstance().
 							options.advancedItemTooltips ? TooltipContext.Default.ADVANCED : TooltipContext.Default.NORMAL);
-
 			tooltip.add(new LiteralText(ModUtils.getModName(entity)).formatted(Formatting.BLUE,Formatting.ITALIC));
-			int i =  - 10 * tooltip.size();
-			for (int i1 = 0; i1 < tooltip.size(); i1++) {
-				Text string = tooltip.get(i1);
-
-				if (i1 == 0) {
-					int count = entity.getStack().getCount();
-					if (count > 1)
-						string = string.append(new LiteralText(" x " + count));
-				}
-
-				matrices.push();
-				matrices.translate(0, f, 0);
-
-				matrices.multiply(MinecraftClient.getInstance().getEntityRenderManager().getRotation());
-				float scale = (float) (ClientConfig.scale * -.025);
-
-				matrices.scale(scale, scale, scale);
-				Matrix4f matrix4f = matrices.peek().getModel();
-				TextRenderer fontrenderer = MinecraftClient.getInstance().getEntityRenderManager().getTextRenderer();
-				float f2 = -fontrenderer.getStringWidth(string.asFormattedString()) / 2f;
-
-				int alpha = alpha(dist);
-				int fontcolor = (alpha << 24) + 0x00ffffff;
-				transparent = true;
-				fontrenderer.draw(string.asFormattedString(), f2, i, fontcolor, false, matrix4f, buffer, false, 0, light);
-				transparent = false;
-				i += 10;
-				matrices.pop();
-			}
 			renderTooltip(entity, matrices, buffer, tooltip,dist);
+		}
+		float f = entity.getHeight() + 0.5F;
+		List<Text> tooltip = entity.getStack().getTooltip(MinecraftClient.getInstance().player, MinecraftClient.getInstance().
+						options.advancedItemTooltips ? TooltipContext.Default.ADVANCED : TooltipContext.Default.NORMAL);
+
+		tooltip.add(new LiteralText(ModUtils.getModName(entity)).formatted(Formatting.BLUE,Formatting.ITALIC));
+		int i =  - 10 * tooltip.size();
+		for (int i1 = 0; i1 < tooltip.size(); i1++) {
+			Text string = tooltip.get(i1);
+
+			if (i1 == 0) {
+				int count = entity.getStack().getCount();
+				if (count > 1) ;
+					//string = string.copy().append(new LiteralText(string + " x " + count));
+			}
+
+			matrices.push();
+			matrices.translate(0, f, 0);
+
+			matrices.multiply(MinecraftClient.getInstance().getEntityRenderManager().getRotation());
+			float scale = (float) (ClientConfig.scale * -.025);
+
+			matrices.scale(scale, scale, scale);
+			Matrix4f matrix4f = matrices.peek().getModel();
+			TextRenderer fontrenderer = MinecraftClient.getInstance().getEntityRenderManager().getTextRenderer();
+			float f2 = -fontrenderer.getWidth(string) / 2f;
+
+			int alpha = alpha(dist);
+			int fontcolor = (alpha << 24) + 0x00ffffff;
+			transparent = true;
+			fontrenderer.draw(string, f2, i, fontcolor, false, matrix4f, buffer, false, 0, light);
+			transparent = false;
+			i += 10;
+			matrices.pop();
 		}
 	}
 
@@ -101,7 +99,7 @@ public class Hooks {
 		Matrix4f matrix4f = matrices.peek().getModel();
 		float height = tooltip.size() * .25f + .10f;
 
-		List<Integer> list = tooltip.stream().map(Text::asFormattedString).map(mc.textRenderer::getStringWidth).collect(Collectors.toList());
+		List<Integer> list = tooltip.stream().map(mc.textRenderer::getWidth).collect(Collectors.toList());
 		float width = Collections.max(list) * .026f + .12f;
 
 		//main background
