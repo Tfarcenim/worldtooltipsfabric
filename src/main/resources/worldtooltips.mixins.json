@@ -5,8 +5,7 @@
   "mixins": [
   ],
   "client": [
-    "ItemEntityRendererMixin",
-    "TextRendererMixin"
+    "ItemEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

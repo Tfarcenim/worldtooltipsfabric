@@ -25,7 +25,7 @@ public class Hooks {
 	public static boolean transparent = false;
 
 	public static void renderItemEntityHook(ItemEntity entity, float p_225623_2_, MatrixStack matrices, VertexConsumerProvider buffer, int light) {
-		double dist = mc.getEntityRenderManager().getSquaredDistanceToCamera(entity);
+		double dist = mc.getEntityRenderDispatcher().getSquaredDistanceToCamera(entity);
 		if (isVisible(dist)) {
 			List<Text> tooltip = entity.getStack().getTooltip(MinecraftClient.getInstance().player, MinecraftClient.getInstance().
 							options.advancedItemTooltips ? TooltipContext.Default.ADVANCED : TooltipContext.Default.NORMAL);
@@ -50,12 +50,12 @@ public class Hooks {
 			matrices.push();
 			matrices.translate(0, f, 0);
 
-			matrices.multiply(MinecraftClient.getInstance().getEntityRenderManager().getRotation());
+			matrices.multiply(MinecraftClient.getInstance().getEntityRenderDispatcher().getRotation());
 			float scale = (float) (ClientConfig.scale * -.025);
 
 			matrices.scale(scale, scale, scale);
 			Matrix4f matrix4f = matrices.peek().getModel();
-			TextRenderer fontrenderer = MinecraftClient.getInstance().getEntityRenderManager().getTextRenderer();
+			TextRenderer fontrenderer = MinecraftClient.getInstance().getEntityRenderDispatcher().getTextRenderer();
 			float f2 = -fontrenderer.getWidth(string) / 2f;
 
 			int alpha = alpha(dist);
@@ -93,7 +93,7 @@ public class Hooks {
 		matrices.scale(ClientConfig.scale,ClientConfig.scale,ClientConfig.scale);
 
 
-		matrices.multiply(MinecraftClient.getInstance().getEntityRenderManager().getRotation());
+		matrices.multiply(MinecraftClient.getInstance().getEntityRenderDispatcher().getRotation());
 
 		VertexConsumer builder = buffer.getBuffer(WorldTooltipsRenderType.getType());
 		Matrix4f matrix4f = matrices.peek().getModel();

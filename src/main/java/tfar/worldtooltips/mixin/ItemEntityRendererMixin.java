@@ -14,6 +14,6 @@ import tfar.worldtooltips.Hooks;
 public class ItemEntityRendererMixin {
 	@Inject(method = "render",at = @At("RETURN"))
 	private void renderInWorldTooltips(ItemEntity itemEntity, float v, float p_225623_3_, MatrixStack p_225623_4_, VertexConsumerProvider p_225623_5_, int p_225623_6_, CallbackInfo ci){
-		Hooks.renderItemEntityHook( itemEntity, v, p_225623_4_, p_225623_5_, p_225623_6_);
+		Hooks.renderItemEntityHook(itemEntity, v, p_225623_4_, p_225623_5_, p_225623_6_);
 	}
 }
