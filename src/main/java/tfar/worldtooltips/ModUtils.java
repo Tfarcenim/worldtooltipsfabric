@@ -2,9 +2,9 @@ package tfar.worldtooltips;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import net.fabricmc.loader.api.metadata.ModMetadata;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.core.Registry;
+import net.minecraft.world.entity.item.ItemEntity;
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +23,6 @@ public class ModUtils {
 	}
 
 	public static String getModName(ItemEntity entity) {
-		return modid_to_mod_name.get(Registry.ITEM.getId(entity.getStack().getItem()).getNamespace());
+		return modid_to_mod_name.get(Registry.ITEM.getKey(entity.getItem().getItem()).getNamespace());
 	}
 }

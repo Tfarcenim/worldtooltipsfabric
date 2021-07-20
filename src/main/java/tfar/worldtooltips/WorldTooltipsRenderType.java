@@ -1,17 +1,26 @@
 package tfar.worldtooltips;
 
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderPhase;
-import net.minecraft.client.render.VertexFormats;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.client.renderer.RenderType;
+import tfar.worldtooltips.mixin.RenderTypeAccess;
 
-public class WorldTooltipsRenderType extends RenderPhase {
-	public WorldTooltipsRenderType(String p_i225973_1_, Runnable p_i225973_2_, Runnable p_i225973_3_) {
-		super(p_i225973_1_, p_i225973_2_, p_i225973_3_);
+public class WorldTooltipsRenderType extends RenderType {
+
+
+	public WorldTooltipsRenderType(String string, VertexFormat vertexFormat, VertexFormat.Mode mode, int i, boolean bl, boolean bl2, Runnable runnable, Runnable runnable2) {
+		super(string, vertexFormat, mode, i, bl, bl2, runnable, runnable2);
 	}
 
-	public static RenderLayer getType() {
-		RenderLayer.MultiPhaseParameters renderTypeState = RenderLayer.MultiPhaseParameters.builder().transparency(TRANSLUCENT_TRANSPARENCY).build(true);
-		return RenderLayer.of(WorldTooltips.MODID, VertexFormats.POSITION_TEXTURE_COLOR_NORMAL, 7, 256, true, true, renderTypeState);
+	public static final RenderType TYPE = createType();
+
+	public static RenderType getType() {
+		return TYPE;
+	}
+
+	public static RenderType createType() {
+		RenderType.CompositeState renderTypeState = RenderType.CompositeState.builder().setTransparencyState(TRANSLUCENT_TRANSPARENCY).createCompositeState(true);
+		return RenderTypeAccess.$create(WorldTooltips.MODID, DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL, VertexFormat.Mode.QUADS, 256, true, true, renderTypeState);
 	}
 
 }

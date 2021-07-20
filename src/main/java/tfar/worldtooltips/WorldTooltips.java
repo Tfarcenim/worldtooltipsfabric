@@ -7,6 +7,7 @@ public class WorldTooltips implements ClientModInitializer {
 	public static final String MODID = "worldtooltips";
 	@Override
 	public void onInitializeClient() {
+		//WorldTooltipsRenderType.getType();
 		ModUtils.populateMap();
 	}
 }

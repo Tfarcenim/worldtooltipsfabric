@@ -3,6 +3,7 @@
   "package": "tfar.worldtooltips.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "RenderTypeAccess"
   ],
   "client": [
     "ItemEntityRendererMixin"

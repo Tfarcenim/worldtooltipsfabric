@@ -1,18 +1,21 @@
 package tfar.worldtooltips;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.item.TooltipContext;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.client.util.math.Vector3f;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Matrix4f;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector3f;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.TooltipFlag;
 
 import java.util.Collections;
 import java.util.List;
@@ -20,51 +23,49 @@ import java.util.stream.Collectors;
 
 public class Hooks {
 
-	public static final MinecraftClient mc = MinecraftClient.getInstance();
+	public static final Minecraft mc = Minecraft.getInstance();
 
 	public static boolean transparent = false;
 
-	public static void renderItemEntityHook(ItemEntity entity, float p_225623_2_, MatrixStack matrices, VertexConsumerProvider buffer, int light) {
-		double dist = mc.getEntityRenderDispatcher().getSquaredDistanceToCamera(entity);
+	public static void renderItemEntityHook(ItemEntity entity, float p_225623_2_, PoseStack matrices, MultiBufferSource buffer, int light) {
+		double dist = mc.getEntityRenderDispatcher().distanceToSqr(entity);
 		if (isVisible(dist)) {
-			List<Text> tooltip = entity.getStack().getTooltip(MinecraftClient.getInstance().player, MinecraftClient.getInstance().
-							options.advancedItemTooltips ? TooltipContext.Default.ADVANCED : TooltipContext.Default.NORMAL);
-			tooltip.add(new LiteralText(ModUtils.getModName(entity)).formatted(Formatting.BLUE,Formatting.ITALIC));
+			List<Component> tooltip = entity.getItem().getTooltipLines(mc.player, mc.options.advancedItemTooltips ? TooltipFlag.Default.ADVANCED : TooltipFlag.Default.NORMAL);
+			tooltip.add(new TextComponent(ModUtils.getModName(entity)).withStyle(ChatFormatting.BLUE,ChatFormatting.ITALIC));
 			renderTooltip(entity, matrices, buffer, tooltip,dist);
 		}
-		float f = entity.getHeight() + 0.5F;
-		List<Text> tooltip = entity.getStack().getTooltip(MinecraftClient.getInstance().player, MinecraftClient.getInstance().
-						options.advancedItemTooltips ? TooltipContext.Default.ADVANCED : TooltipContext.Default.NORMAL);
+		float f = entity.getBbHeight() + 0.5F;
+		List<Component> tooltip = entity.getItem().getTooltipLines(mc.player, mc.
+						options.advancedItemTooltips ? TooltipFlag.Default.ADVANCED : TooltipFlag.Default.NORMAL);
 
-		tooltip.add(new LiteralText(ModUtils.getModName(entity)).formatted(Formatting.BLUE,Formatting.ITALIC));
+		tooltip.add(new TextComponent(ModUtils.getModName(entity)).withStyle(ChatFormatting.BLUE,ChatFormatting.ITALIC));
 		int i =  - 10 * tooltip.size();
 		for (int i1 = 0; i1 < tooltip.size(); i1++) {
-			Text string = tooltip.get(i1);
+			Component string = tooltip.get(i1);
 
 			if (i1 == 0) {
-				int count = entity.getStack().getCount();
+				int count = entity.getItem().getCount();
 				if (count > 1) ;
 					//string = string.copy().append(new LiteralText(string + " x " + count));
 			}
 
-			matrices.push();
+			matrices.pushPose();
 			matrices.translate(0, f, 0);
 
-			matrices.multiply(MinecraftClient.getInstance().getEntityRenderDispatcher().getRotation());
+			matrices.mulPose(mc.getEntityRenderDispatcher().cameraOrientation());
 			float scale = (float) (ClientConfig.scale * -.025);
 
 			matrices.scale(scale, scale, scale);
-			Matrix4f matrix4f = matrices.peek().getModel();
-			TextRenderer fontrenderer = MinecraftClient.getInstance().getEntityRenderDispatcher().getTextRenderer();
-			float f2 = -fontrenderer.getWidth(string) / 2f;
+			Font fontrenderer = mc.font;
+			float f2 = -fontrenderer.width(string) / 2f;
 
 			int alpha = alpha(dist);
 			int fontcolor = (alpha << 24) + 0x00ffffff;
 			transparent = true;
-			fontrenderer.draw(string, f2, i, fontcolor, false, matrix4f, buffer, false, 0, light);
+			fontrenderer.draw(matrices,string,f2, light,fontcolor);
 			transparent = false;
 			i += 10;
-			matrices.pop();
+			matrices.popPose();
 		}
 	}
 
@@ -82,10 +83,10 @@ public class Hooks {
 		return (int) (0xff - dist * 4);
 	}
 
-	private static void renderTooltip(ItemEntity entity, MatrixStack matrices, VertexConsumerProvider buffer, List<Text> tooltip,double dist) {
+	private static void renderTooltip(ItemEntity entity, PoseStack matrices, MultiBufferSource buffer, List<Component> tooltip,double dist) {
 
-		matrices.push();
-		float f = entity.getHeight() + 0.5F;
+		matrices.pushPose();
+		float f = entity.getBbHeight() + 0.5F;
 
 
 		matrices.translate(0,f,0);
@@ -93,13 +94,14 @@ public class Hooks {
 		matrices.scale(ClientConfig.scale,ClientConfig.scale,ClientConfig.scale);
 
 
-		matrices.multiply(MinecraftClient.getInstance().getEntityRenderDispatcher().getRotation());
+		matrices.mulPose(mc.getEntityRenderDispatcher().cameraOrientation());
 
-		VertexConsumer builder = buffer.getBuffer(WorldTooltipsRenderType.getType());
-		Matrix4f matrix4f = matrices.peek().getModel();
+		MultiBufferSource.BufferSource immediate = mc.renderBuffers().bufferSource();
+		VertexConsumer builder = immediate.getBuffer(RenderType.entityTranslucent(new ResourceLocation(WorldTooltips.MODID,WorldTooltips.MODID), false));
+		Matrix4f matrix4f = matrices.last().pose();
 		float height = tooltip.size() * .25f + .10f;
 
-		List<Integer> list = tooltip.stream().map(mc.textRenderer::getWidth).collect(Collectors.toList());
+		List<Integer> list = tooltip.stream().map(mc.font::width).collect(Collectors.toList());
 		float width = Collections.max(list) * .026f + .12f;
 
 		//main background
@@ -115,7 +117,7 @@ public class Hooks {
 
 		float padding = .04f;
 
-		int color = entity.getStack().getRarity().formatting.getColorValue();
+		int color = entity.getItem().getRarity().color.getColor();
 
 
 		//left
@@ -130,7 +132,8 @@ public class Hooks {
 		//top
 		fill(builder,matrix4f,-width / 2 + padding,width - 2 * padding,padding/2 + height - 1 * padding,thickness,z,(alpha << 24) | color);
 
-		matrices.pop();
+		//mc.renderBuffers().bufferSource().endBatch(WorldTooltipsRenderType.getType());
+		matrices.popPose();
 
 	}
 
@@ -145,9 +148,12 @@ public class Hooks {
 	}
 
 	public static void fill(VertexConsumer consumer, Matrix4f matrix4f, float u, float width, float v, float height,float z, float r, float g, float b, float a) {
-		consumer.vertex(matrix4f, u, v, z).texture(0.0F, 0.0F).color(r, g, b, a).normal(Vector3f.POSITIVE_Y.getX(), Vector3f.POSITIVE_Y.getY(), Vector3f.POSITIVE_Y.getZ()).next();
-		consumer.vertex(matrix4f, u, v + height, z).texture(0.0F, 0.5F).color(r, g, b, a).normal(Vector3f.POSITIVE_Y.getX(), Vector3f.POSITIVE_Y.getY(), Vector3f.POSITIVE_Y.getZ()).next();
-		consumer.vertex(matrix4f, u + width, v + height, z).texture(1.0F, 0.5F).color(r, g, b, a).normal(Vector3f.POSITIVE_Y.getX(), Vector3f.POSITIVE_Y.getY(), Vector3f.POSITIVE_Y.getZ()).next();
-		consumer.vertex(matrix4f, u + width, v, z).texture(1.0F, 0.0F).color(r, g, b, a).normal(Vector3f.POSITIVE_Y.getX(), Vector3f.POSITIVE_Y.getY(), Vector3f.POSITIVE_Y.getZ()).next();
+		final int overlay = OverlayTexture.NO_OVERLAY;
+		int light = 0xffffff;
+
+		consumer.vertex(matrix4f, u, v, z).color(r, g, b, a).overlayCoords(overlay).uv2(light).normal(Vector3f.YP.x(), Vector3f.YP.y(), Vector3f.YP.z()).endVertex();
+		consumer.vertex(matrix4f, u, v + height, z).color(r, g, b, a).overlayCoords(overlay).uv2(light).normal(Vector3f.YP.x(), Vector3f.YP.y(), Vector3f.YP.z()).endVertex();
+		consumer.vertex(matrix4f, u + width, v + height, z).color(r, g, b, a).overlayCoords(overlay).uv2(light).normal(Vector3f.YP.x(), Vector3f.YP.y(), Vector3f.YP.z()).endVertex();
+		consumer.vertex(matrix4f, u + width, v, z).color(r, g, b, a).overlayCoords(overlay).uv2(light).normal(Vector3f.YP.x(), Vector3f.YP.y(), Vector3f.YP.z()).endVertex();
 	}
 }

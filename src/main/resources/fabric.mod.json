@@ -2,6 +2,7 @@
   "schemaVersion": 1,
   "id": "worldtooltips",
   "version": "${version}",
+  "accessWidener": "worldtooltips.accesswidener",
 
   "name": "World Tooltips",
   "description": "Adds tooltips to inworld items",
